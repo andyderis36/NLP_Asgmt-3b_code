@@ -18,11 +18,18 @@ model = joblib.load('models/model.pkl')
 vectorizer = joblib.load('models/vectorizer.pkl')
 
 def get_llm_prediction(text, placeholder):
-    prompt = f"Analisis kalimat ini: '{text}'. Tentukan apakah kalimat ini menggunakan konteks Bahasa Indonesia atau Bahasa Melayu (Malaysia) berdasarkan penggunaan kata 'False Friend' di dalamnya. Jawab dengan format: Label: [Indonesia/Malaysia] diikuti dengan Alasan: [penjelasan singkat]."
+    # Prompt dioptimalkan agar model memberikan format yang lebih mudah diproses
+    prompt = f"""Analisis kalimat ini: '{text}'. 
+    Tentukan apakah kalimat ini konteksnya Bahasa Indonesia atau Bahasa Melayu (Malaysia).
+    JAWAB HANYA DENGAN SATU KATA: 'Indonesia' atau 'Malaysia'.
+    Setelah itu, berikan penjelasan singkatnya.
+    Format:
+    Label: [Indonesia/Malaysia]
+    Alasan: [penjelasan singkat]"""
 
     try:
         stream = client.chat.completions.create(
-            model="openrouter/free",
+            model="openai/gpt-oss-120b:free",
             messages=[{"role": "user", "content": prompt}],
             stream=True
         )
@@ -38,7 +45,7 @@ def get_llm_prediction(text, placeholder):
         return full_response
     except Exception as e:
         placeholder.error(f"Maaf, terjadi kesalahan saat menghubungi server model: {e}")
-        return "Gagal mendapatkan respons."
+        return "Error"
 
 st.title("Deteksi Konteks False Friend (Indo vs Malay)")
 
@@ -49,25 +56,28 @@ if st.button("Deteksi"):
         # Prediction Lokal
         tfidf_vec = vectorizer.transform([user_input])
         local_pred = model.predict(tfidf_vec)[0]
-        
+
         # UI Comparison
         col1, col2 = st.columns(2)
-        col1.subheader("Random Forest (Model Lokal)")
+        col1.subheader("Random Forest (Lokal)")
         col1.write(f"**{local_pred}**")
-        
-        col2.subheader("OpenRouter (Model Eksternal)")
+
+        col2.subheader("OpenRouter (Eksternal)")
         placeholder = col2.empty()
-        
+
         # Prediction OpenRouter
         with st.spinner('Meminta bantuan OpenRouter...'):
             openrouter_resp = get_llm_prediction(user_input, placeholder)
-            # Simple parsing for comparison
-            openrouter_pred = "Indonesia" if "Indonesia" in openrouter_resp else "Malaysia"
-            
-        # Match Indicator
-        if local_pred == openrouter_pred:
-            st.success("Result: Match!")
-        else:
-            st.warning("Result: Conflict!")
-    else:
-        st.warning("Masukkan kalimat terlebih dahulu.")
+
+            # Parsing yang lebih presisi dengan mencari teks setelah "Label: "
+            response_text = openrouter_resp
+            if "Label: Indonesia" in response_text or "Indonesia" in response_text.split("Label:")[1].split()[0]:
+                openrouter_pred = "Indonesia"
+            else:
+                openrouter_pred = "Malaysia"
+
+            # Match Indicator dengan normalisasi (lowercase & strip)
+            if local_pred.strip().lower() == openrouter_pred.strip().lower():
+                st.success(f"Result: Match! (Local: {local_pred}, OpenRouter: {openrouter_pred})")
+            else:
+                st.warning(f"Result: Conflict! (Local: {local_pred}, OpenRouter: {openrouter_pred})")
