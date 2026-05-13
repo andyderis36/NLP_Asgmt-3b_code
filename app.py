@@ -67,14 +67,30 @@ if st.button("Deteksi"):
 
         # Prediction OpenRouter
         with st.spinner('Meminta bantuan OpenRouter...'):
-            openrouter_resp = get_llm_prediction(user_input, placeholder)
-
-            # Parsing yang lebih presisi dengan mencari teks setelah "Label: "
-            response_text = openrouter_resp
-            if "Label: Indonesia" in response_text or "Indonesia" in response_text.split("Label:")[1].split()[0]:
-                openrouter_pred = "Indonesia"
-            else:
-                openrouter_pred = "Malaysia"
+            try:
+                stream = client.chat.completions.create(
+                    model="openai/gpt-oss-120b:free",
+                    messages=[{"role": "user", "content": f"Analisis kalimat ini: '{user_input}'. Tentukan apakah kalimat ini menggunakan konteks Bahasa Indonesia atau Bahasa Melayu (Malaysia) berdasarkan penggunaan kata 'False Friend' di dalamnya. Jawab dengan format: Label: [Indonesia/Malaysia] diikuti dengan Alasan: [penjelasan singkat]."}],
+                    stream=True
+                )
+                
+                openrouter_resp = ""
+                for chunk in stream:
+                    if chunk.choices[0].delta.content is not None:
+                        openrouter_resp += chunk.choices[0].delta.content
+                        placeholder.markdown(openrouter_resp + "▌")
+                
+                placeholder.markdown(openrouter_resp)
+                
+                # Parsing yang lebih presisi
+                if "Label: Indonesia" in openrouter_resp or "Indonesia" in openrouter_resp.split("Label:")[1].split()[0]:
+                    openrouter_pred = "Indonesia"
+                else:
+                    openrouter_pred = "Malaysia"
+            except Exception as e:
+                st.error(f"Error OpenRouter: {e}")
+                openrouter_pred = "Error"
+                openrouter_resp = "Gagal mendapatkan respons."
 
             # Match Indicator dengan normalisasi (lowercase & strip)
             if local_pred.strip().lower() == openrouter_pred.strip().lower():

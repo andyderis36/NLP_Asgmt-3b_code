@@ -6,7 +6,7 @@ This project implements a hybrid NLP classification system to detect the context
 ## Key Features
 - **Data Reshaping:** Automatically processes wide-format datasets into labeled long-format samples (1,002 samples).
 - **Optimized Local Model:** Random Forest Classifier fine-tuned using `GridSearchCV` with TF-IDF vectorization.
-- **Advanced Hybrid Inference:** Real-time comparison between local model predictions and OpenRouter LLM (Llama 3.3/Free models).
+- **Advanced Hybrid Inference:** Real-time comparison between local model predictions and OpenRouter LLM (GPT-OSS-120b).
 - **Interactive Streaming UI:** Streamlit web application featuring live-typing responses and "Match/Conflict" logic.
 - **Secure Configuration:** Environment variable management via `.env` for API security.
 

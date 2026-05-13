@@ -15,7 +15,7 @@ This research explores "False Friends"—lexical items shared between Bahasa Mel
     - **Proposed:** Random Forest Classifier, optimized via `GridSearchCV` for hyperparameter tuning (n_estimators, max_depth).
 
 ### 2.3 Hybrid Inference System
-- Integration of **OpenRouter API** to provide external benchmarking.
+- Integration of **OpenRouter API (GPT-OSS-120b)** to provide external benchmarking.
 - Implementation of **Streaming Responses** for an interactive user experience.
 - **Comparison Logic:** A robust "Match/Conflict" detection system that normalizes predictions (lowercase/strip) to validate local model performance against LLM reasoning.
 
