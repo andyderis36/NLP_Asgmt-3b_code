@@ -1,28 +1,32 @@
-# Project Report: False Friend Context Classification System
+# Project Report: Hybrid Classification System for Malay–Indonesian False Friends
 
 ## 1. Introduction
-This project focuses on the linguistic challenges of "False Friends"—words that look similar but possess different meanings—between Indonesian and Malaysian. The objective is to build a robust classification system that accurately detects the context of such terms.
+This research explores "False Friends"—lexical items shared between Bahasa Melayu (BM) and Bahasa Indonesia (BI) that possess divergent meanings. The goal is to evaluate cross-lingual semantic understanding using a hybrid approach combining local supervised learning and external Large Language Models (LLMs).
 
 ## 2. Methodology
-### 2.1 Data Processing
-- Dataset: `Dataset Group E - False Friend.csv`
-- Reshaping: The dataset was converted from wide format to a unified long format consisting of text samples and their corresponding language labels (Indonesia/Malaysia).
-- Cleaning: Null values were removed to ensure model stability.
+### 2.1 Data Pipeline
+- **Reshaping:** We transformed the wide-format dataset (501 pairs) into a long-format corpus (1,002 labeled samples) to ensure class balance and lexical diversity.
+- **Preprocessing:** Handling null values and normalizing text input.
 
-### 2.2 Model Implementation
-- **Baseline:** Multinomial Naive Bayes using TF-IDF vectorization.
-- **Advanced:** Random Forest Classifier optimized with `GridSearchCV` (Hyperparameters: `n_estimators`, `max_depth`).
-- **Hybrid Inference:** Integration of OpenRouter API (Llama 3.3/OpenRouter free model) for comparative analysis against the local model.
+### 2.2 Implementation & Feature Engineering
+- **Feature Representation:** TF-IDF (Term Frequency-Inverse Document Frequency) was selected to capture unique lexical markers crucial for disambiguating False Friends (Cahyawijaya et al., 2025).
+- **Modeling:** 
+    - **Baseline:** Multinomial Naive Bayes.
+    - **Proposed:** Random Forest Classifier, optimized via `GridSearchCV` for hyperparameter tuning (n_estimators, max_depth).
 
-## 3. Experimental Results
-- Local model performance was evaluated using Accuracy and F1-Score.
-- A confusion matrix was implemented using Seaborn to visualize classification performance.
-- A "Match/Conflict" logic was introduced to compare the local model's performance against the LLM's reasoning capabilities.
+### 2.3 Hybrid Inference System
+- Integration of **OpenRouter API** to provide external benchmarking.
+- Implementation of **Streaming Responses** for an interactive user experience.
+- **Comparison Logic:** A robust "Match/Conflict" detection system that normalizes predictions (lowercase/strip) to validate local model performance against LLM reasoning.
+
+## 3. Experimental Setup
+- **Train/Test Split:** 80/20 ratio.
+- **Metrics:** Accuracy and F1-Score visualized through styled comparative tables and Seaborn Confusion Matrices.
+- **Reproducibility:** Environment managed via `venv` and `.env`, with all dependencies documented in `requirements.txt`.
 
 ## 4. Discussion & Conclusion
-- The hybrid approach provides a mechanism for human-in-the-loop validation, where model conflicts serve as data points for future model fine-tuning.
-- The application was deployed via Streamlit, providing an interactive, user-friendly interface.
+The results demonstrate that while the local Random Forest model is effective at capturing dataset-specific patterns, the LLM provides broader linguistic context. The "Conflict" flags serve as a valuable diagnostic tool for identifying edge cases where semantic overlap between BM and BI is particularly high.
 
-## 5. Future Work
-- Expand the dataset to include more regional variations.
-- Implement fine-tuning for the Random Forest model using samples flagged as "Conflict".
+## 5. Implementation Details
+- **Tools:** Python, Scikit-learn, Pandas, Streamlit, OpenAI SDK.
+- **Infrastructure:** Local training with cloud-based benchmarking via OpenRouter.
